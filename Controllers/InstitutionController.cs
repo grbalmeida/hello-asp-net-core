@@ -70,5 +70,10 @@ namespace InstitutionOfHigherEducation.Controllers
 
             return RedirectToAction("Index");
         }
+
+        public ActionResult Details(long id)
+        {
+            return View(institutions.Where(institution => institution.Id == id).First());
+        }
     }
 }

@@ -37,7 +37,7 @@ namespace InstitutionOfHigherEducation.Controllers
         };
         public IActionResult Index()
         {
-            return View(institutions);
+            return View(institutions.OrderBy(institution => institution.Name));
         }
 
         public ActionResult Create()
@@ -51,6 +51,22 @@ namespace InstitutionOfHigherEducation.Controllers
         {
             institutions.Add(institution);
             institution.Id = institutions.Select(i => i.Id).Max() + 1;
+
+            return RedirectToAction("Index");
+        }
+
+        public ActionResult Edit(long id)
+        {
+            return View(institutions.Where(institution => institution.Id == id).First());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit(Institution institution)
+        {
+            institutions[
+                institutions.IndexOf(institutions.Where(i => i.Id == institution.Id).First())
+            ] = institution;
 
             return RedirectToAction("Index");
         }

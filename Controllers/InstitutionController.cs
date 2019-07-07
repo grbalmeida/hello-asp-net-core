@@ -75,5 +75,19 @@ namespace InstitutionOfHigherEducation.Controllers
         {
             return View(institutions.Where(institution => institution.Id == id).First());
         }
+
+        public ActionResult Delete(long id)
+        {
+            return View(institutions.Where(institution => institution.Id == id).First());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Delete(Institution institution)
+        {
+            institutions.Remove(institutions.Where(i => i.Id == institution.Id).First());
+
+            return RedirectToAction("Index");
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using InstitutionOfHigherEducation.Models;
 
@@ -37,6 +38,21 @@ namespace InstitutionOfHigherEducation.Controllers
         public IActionResult Index()
         {
             return View(institutions);
+        }
+
+        public ActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(Institution institution)
+        {
+            institutions.Add(institution);
+            institution.Id = institutions.Select(i => i.Id).Max() + 1;
+
+            return RedirectToAction("Index");
         }
     }
 }

@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+
+using InstitutionOfHigherEducation.Data;
 
 namespace InstitutionOfHigherEducation
 {
@@ -31,6 +34,7 @@ namespace InstitutionOfHigherEducation
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddDbContext<IHEContext>(options => options.UseSqlServer(Configuration.GetConnectionString("IHEConnection")));
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }

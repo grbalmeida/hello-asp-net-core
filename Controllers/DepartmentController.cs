@@ -120,5 +120,32 @@ namespace InstitutionOfHigherEducation.Controllers
 
             return View(departament);
         }
+
+        public async Task<IActionResult> Delete(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var department = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
+
+            if (department == null)
+            {
+                return NotFound();
+            }
+
+            return View(department);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(long? id)
+        {
+            var departament = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
+            _context.Departments.Remove(departament);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
     }
 }

@@ -1,43 +1,25 @@
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
 using InstitutionOfHigherEducation.Models;
+using InstitutionOfHigherEducation.Data;
+
 
 namespace InstitutionOfHigherEducation.Controllers
 {
     public class InstitutionController : Controller
     {
-        private static IList<Institution> institutions = new List<Institution>()
+        private readonly IHEContext _context;
+
+        public InstitutionController(IHEContext context)
         {
-            new Institution() {
-                Id = 1,
-                Name = "UniParaná",
-                Address = "Paraná"
-            },
-            new Institution() {
-                Id = 2,
-                Name = "UniSanta",
-                Address = "Santa Catarina"
-            },
-            new Institution() {
-                Id = 3,
-                Name = "UniSãoPaulo",
-                Address = "São Paulo"
-            },
-            new Institution() {
-                Id = 4,
-                Name = "UniSulgrandense",
-                Address = "Rio Grande do Sul"
-            },
-            new Institution() {
-                Id = 5,
-                Name = "UniCarioca",
-                Address = "Rio de Janeiro"
-            }
-        };
-        public IActionResult Index()
+            _context = context;
+        }
+        public async Task<IActionResult> Index()
         {
-            return View(institutions.OrderBy(institution => institution.Name));
+            return View(await _context.Institutions.OrderBy(institution => institution.Name).ToListAsync());
         }
 
         public ActionResult Create()
@@ -47,47 +29,123 @@ namespace InstitutionOfHigherEducation.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create(Institution institution)
+        public async Task<IActionResult> Create([Bind("Name,Address")]Institution institution)
         {
-            institutions.Add(institution);
-            institution.Id = institutions.Select(i => i.Id).Max() + 1;
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    _context.Add(institution);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+            catch(DbUpdateException)
+            {
+                ModelState.AddModelError("", "Could not enter data.");
+            }
 
-            return RedirectToAction("Index");
+            return View(institution);
         }
 
-        public ActionResult Edit(long id)
+        public async Task<IActionResult> Edit(long? id)
         {
-            return View(institutions.Where(institution => institution.Id == id).First());
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var institution = await _context.Institutions.SingleOrDefaultAsync(i => i.Id == id);
+
+            if (institution == null)
+            {
+                return NotFound();
+            }
+
+            return View(institution);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit(Institution institution)
+        public async Task<IActionResult> Edit(long? id, [Bind("Id,Name,Address")] Institution institution)
         {
-            institutions[
-                institutions.IndexOf(institutions.Where(i => i.Id == institution.Id).First())
-            ] = institution;
+            if (id != institution.Id)
+            {
+                return NotFound();
+            }
 
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(institution);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!InstitutionExists(institution.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(institution);
         }
 
-        public ActionResult Details(long id)
+        public bool InstitutionExists(long? id)
         {
-            return View(institutions.Where(institution => institution.Id == id).First());
+            return _context.Institutions.Any(institution => institution.Id == id);
         }
 
-        public ActionResult Delete(long id)
+        public async Task<IActionResult> Details(long? id)
         {
-            return View(institutions.Where(institution => institution.Id == id).First());
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var institution = await _context.Institutions.SingleOrDefaultAsync(i => i.Id == id);
+
+            if (institution == null)
+            {
+                return NotFound();
+            }
+
+            return View(institution);
         }
 
-        [HttpPost]
+        public async Task<IActionResult> Delete(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var institution = await _context.Institutions.SingleOrDefaultAsync(i => i.Id == id);
+
+            if (institution == null)
+            {
+                return NotFound();
+            }
+
+            return View(institution);
+        }
+
+        [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(Institution institution)
+        public async Task<IActionResult> DeleteConfirmed(long? id)
         {
-            institutions.Remove(institutions.Where(i => i.Id == institution.Id).First());
-
-            return RedirectToAction("Index");
+            var institution = await _context.Institutions.SingleOrDefaultAsync(d => d.Id == id);
+            _context.Institutions.Remove(institution);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
     }
 }

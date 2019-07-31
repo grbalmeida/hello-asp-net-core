@@ -12,16 +12,5 @@ namespace InstitutionOfHigherEducation.Data
         {
 
         }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<Department>().ToTable("Department");
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=IHECasaDoCodigo;Trusted_Connection=True;MultipleActiveResultSets=true");
-        }
     }
 }

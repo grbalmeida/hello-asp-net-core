@@ -42,10 +42,66 @@ namespace InstitutionOfHigherEducation.Controllers
             }
             catch(DbUpdateException)
             {
-                ModelState.AddModelError("", "Could not enter data");
+                ModelState.AddModelError("", "Could not enter data.");
             }
 
             return View(department);
+        }
+
+        public async Task<IActionResult> Edit(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var departament = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
+
+            if (departament == null)
+            {
+                return NotFound();
+            }
+
+            return View(departament);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(long? id, [Bind("Id,Name")] Department department)
+        {
+            if (id != department.Id)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _context.Update(department);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!DepartmentExists(department.Id))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View(department);
+        }
+
+        public bool DepartmentExists(long? id)
+        {
+            return _context.Departments.Any(department => department.Id == id);
         }
     }
 }

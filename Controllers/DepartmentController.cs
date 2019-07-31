@@ -103,5 +103,22 @@ namespace InstitutionOfHigherEducation.Controllers
         {
             return _context.Departments.Any(department => department.Id == id);
         }
+
+        public async Task<IActionResult> Details(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var departament = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
+
+            if (departament == null)
+            {
+                return NotFound();
+            }
+
+            return View(departament);
+        }
     }
 }

@@ -111,7 +111,9 @@ namespace InstitutionOfHigherEducation.Controllers
                 return NotFound();
             }
 
-            var institution = await _context.Institutions.SingleOrDefaultAsync(i => i.Id == id);
+            var institution = await _context.Institutions
+                .Include(i => i.Departments)
+                .SingleOrDefaultAsync(i => i.Id == id);
 
             if (institution == null)
             {

@@ -24,6 +24,14 @@
             </dl>
         </div>
         <div>
+            @{
+                await Html.RenderPartialAsync(
+                    "~/Views/Institution/_Departments.cshtml",
+                    Model.Departments.ToList()
+                );
+            }
+        </div>
+        <div>
             @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
             <a asp-action="Index">Back to List</a>
         </div>

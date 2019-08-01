@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 using InstitutionOfHigherEducation.Models;
@@ -19,17 +20,29 @@ namespace InstitutionOfHigherEducation.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Departments.OrderBy(departament => departament.Name).ToListAsync());
+            return View(
+                await _context.Departments
+                    .Include(department => department.Institution)
+                    .OrderBy(department => department.Name)
+                    .ToListAsync()
+            );
         }
 
         public IActionResult Create()
         {
+            var institutions = _context.Institutions.OrderBy(institution => institution.Name).ToList();
+            institutions.Insert(0, new Institution() {
+                Id = 0,
+                Name = "Select institution"
+            });
+            ViewBag.Institutions = institutions;
+            
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name")] Department department)
+        public async Task<IActionResult> Create([Bind("Name,InstitutionId")] Department department)
         {
             try
             {
@@ -62,12 +75,19 @@ namespace InstitutionOfHigherEducation.Controllers
                 return NotFound();
             }
 
+            ViewBag.Institutions = new SelectList(
+                _context.Institutions.OrderBy(institution => institution.Name),
+                "Id",
+                "Name",
+                departament.InstitutionId
+            );
+
             return View(departament);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(long? id, [Bind("Id,Name")] Department department)
+        public async Task<IActionResult> Edit(long? id, [Bind("Id,Name,InstitutionId")] Department department)
         {
             if (id != department.Id)
             {
@@ -96,6 +116,13 @@ namespace InstitutionOfHigherEducation.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            ViewBag.Institutions = new SelectList(
+                _context.Institutions.OrderBy(institution => institution.Name),
+                "InstitutionId",
+                "Name",
+                department.InstitutionId
+            );
+
             return View(department);
         }
 
@@ -112,6 +139,7 @@ namespace InstitutionOfHigherEducation.Controllers
             }
 
             var departament = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
+            _context.Institutions.Where(institution => departament.InstitutionId == institution.Id).Load();
 
             if (departament == null)
             {
@@ -129,6 +157,7 @@ namespace InstitutionOfHigherEducation.Controllers
             }
 
             var department = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
+            _context.Institutions.Where(institution => department.InstitutionId == institution.Id).Load();
 
             if (department == null)
             {

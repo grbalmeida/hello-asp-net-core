@@ -8,6 +8,7 @@ namespace InstitutionOfHigherEducation.Data
     {
         public static void Initialize(IHEContext context)
         {
+            context.Database.EnsureDeleted();
             context.Database.EnsureCreated();
 
             if (context.Departments.Any())

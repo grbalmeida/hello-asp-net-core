@@ -5,21 +5,44 @@ using Microsoft.EntityFrameworkCore;
 
 using Model.Entries;
 using InstitutionOfHigherEducation.Data;
-
+using InstitutionOfHigherEducation.Data.DAL.Entries;
 
 namespace InstitutionOfHigherEducation.Controllers
 {
     public class InstitutionController : Controller
     {
         private readonly IHEContext _context;
+        private readonly InstitutionDAL institutionDAL;
 
         public InstitutionController(IHEContext context)
         {
             _context = context;
+            institutionDAL = new InstitutionDAL(context);
         }
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Institutions.OrderBy(institution => institution.Name).ToListAsync());
+            return View(
+                await institutionDAL.GetInstitutionsSortedByName()
+                    .ToListAsync()
+            );
+        }
+
+        private async Task<IActionResult> GetInstitutionViewById(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var institution = await institutionDAL.GetInstitutionById((long) id);
+
+            if (institution == null)
+            {
+                return NotFound();
+            }
+
+            await _context.SaveChangesAsync();
+            return View(institution);
         }
 
         public ActionResult Create()
@@ -35,8 +58,7 @@ namespace InstitutionOfHigherEducation.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    _context.Add(institution);
-                    await _context.SaveChangesAsync();
+                    await institutionDAL.SaveInstitution(institution);
                     return RedirectToAction(nameof(Index));
                 }
             }
@@ -50,19 +72,7 @@ namespace InstitutionOfHigherEducation.Controllers
 
         public async Task<IActionResult> Edit(long? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var institution = await _context.Institutions.SingleOrDefaultAsync(i => i.Id == id);
-
-            if (institution == null)
-            {
-                return NotFound();
-            }
-
-            return View(institution);
+            return await GetInstitutionViewById(id);
         }
 
         [HttpPost]
@@ -78,12 +88,11 @@ namespace InstitutionOfHigherEducation.Controllers
             {
                 try
                 {
-                    _context.Update(institution);
-                    await _context.SaveChangesAsync();
+                    await institutionDAL.SaveInstitution(institution);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!InstitutionExists(institution.Id))
+                    if (!await InstitutionExists(institution.Id))
                     {
                         return NotFound();
                     }
@@ -99,54 +108,26 @@ namespace InstitutionOfHigherEducation.Controllers
             return View(institution);
         }
 
-        public bool InstitutionExists(long? id)
+        public async Task<bool> InstitutionExists(long? id)
         {
-            return _context.Institutions.Any(institution => institution.Id == id);
+            return await institutionDAL.GetInstitutionById((long) id) != null;
         }
 
         public async Task<IActionResult> Details(long? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var institution = await _context.Institutions
-                .Include(i => i.Departments)
-                .SingleOrDefaultAsync(i => i.Id == id);
-
-            if (institution == null)
-            {
-                return NotFound();
-            }
-
-            return View(institution);
+            return await GetInstitutionViewById(id);
         }
 
         public async Task<IActionResult> Delete(long? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var institution = await _context.Institutions.SingleOrDefaultAsync(i => i.Id == id);
-
-            if (institution == null)
-            {
-                return NotFound();
-            }
-
-            return View(institution);
+            return await GetInstitutionViewById(id);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long? id)
         {
-            var institution = await _context.Institutions.SingleOrDefaultAsync(d => d.Id == id);
-            _context.Institutions.Remove(institution);
-            await _context.SaveChangesAsync();
+            var institution = await institutionDAL.RemoveInstitutionById((long) id);
             return RedirectToAction(nameof(Index));
         }
     }

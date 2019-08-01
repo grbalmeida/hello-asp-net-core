@@ -1,6 +1,6 @@
 using System.Linq;
 
-using InstitutionOfHigherEducation.Models;
+using Model.Entries;
 
 namespace InstitutionOfHigherEducation.Data
 {

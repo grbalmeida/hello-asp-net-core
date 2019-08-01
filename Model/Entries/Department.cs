@@ -1,4 +1,4 @@
-namespace InstitutionOfHigherEducation.Models
+namespace Model.Entries
 {
     public class Department
     {

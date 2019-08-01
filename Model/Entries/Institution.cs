@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace InstitutionOfHigherEducation.Models
+namespace Model.Entries
 {
     public class Institution
     {

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-using InstitutionOfHigherEducation.Models;
+using Model.Entries;
 
 namespace InstitutionOfHigherEducation.Data
 {

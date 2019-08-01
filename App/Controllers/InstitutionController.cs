@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-using InstitutionOfHigherEducation.Models;
+using Model.Entries;
 using InstitutionOfHigherEducation.Data;
 
 

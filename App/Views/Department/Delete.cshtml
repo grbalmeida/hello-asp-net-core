@@ -1,4 +1,4 @@
-@model InstitutionOfHigherEducation.Models.Department
+@model Model.Entries.Department
 
 @{
     Layout = "_Layout";
@@ -8,9 +8,10 @@
 <html>
     <head>
         <meta name="viewport" content="width=device-width" />
-        <title>Details</title>
+        <title>Delete</title>
     </head>
     <body>
+        <h3>Are you sure you want to delete this?</h3>
         <div>
             <h4>Department</h4>
             <hr />
@@ -22,10 +23,13 @@
                 <dt>Institution Name</dt>
                 <dd>@Html.DisplayFor(model => model.Institution.Name)</dd>
             </dl>
+            <form asp-action="Delete">
+                <input type="hidden" asp-for="Id" />
+                <div class="form-actions no-color">
+                    <input type="submit" value="Delete" class="btn btn-default" /> |
+                    <a asp-action="Index">Back to List</a>
+                </div>
+            </form>
         </div>
-        <div>
-            @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
-            <a asp-action="Index">Back to List</a>
-        </div>
-    </body>
-</html>
+    </body>   
+<html>

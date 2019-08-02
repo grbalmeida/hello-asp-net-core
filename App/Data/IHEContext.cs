@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using Model.Entries;
+using Model.Student;
 
 namespace InstitutionOfHigherEducation.Data
 {
@@ -10,6 +11,8 @@ namespace InstitutionOfHigherEducation.Data
         public DbSet<Institution> Institutions { get; set; }
         public DbSet<Course> Courses { get; set; }
         public DbSet<Lesson> Lessons { get; set; }
+        public DbSet<Academic> Academics { get; set; }
+
         public IHEContext(DbContextOptions<IHEContext> options): base(options)
         {
 

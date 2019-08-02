@@ -6,37 +6,52 @@ using Microsoft.EntityFrameworkCore;
 
 using Model.Entries;
 using InstitutionOfHigherEducation.Data;
+using InstitutionOfHigherEducation.Data.DAL.Entries;
 
 namespace InstitutionOfHigherEducation.Controllers
 {
     public class DepartmentController : Controller
     {
         private readonly IHEContext _context;
+        private readonly DepartmentDAL departmentDAL;
+        private readonly InstitutionDAL institutionDAL;
 
         public DepartmentController(IHEContext context)
         {
             this._context = context;
+            institutionDAL = new InstitutionDAL(context);
+            departmentDAL = new DepartmentDAL(context);
         }
 
         public async Task<IActionResult> Index()
         {
             return View(
-                await _context.Departments
-                    .Include(department => department.Institution)
-                    .OrderBy(department => department.Name)
-                    .ToListAsync()
+                await departmentDAL.GetDepartmentsSortedByName().ToListAsync()
             );
+        }
+
+        private async Task<IActionResult> GetDepartmentViewById(long? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var departament = await departmentDAL.GetDepartmentById((long) id);
+
+            if (departament == null)
+            {
+                return NotFound();
+            }
+
+            return View(departament);
         }
 
         public IActionResult Create()
         {
-            var institutions = _context.Institutions.OrderBy(institution => institution.Name).ToList();
-            institutions.Insert(0, new Institution() {
-                Id = 0,
-                Name = "Select institution"
-            });
+            var institutions = institutionDAL.GetInstitutionsSortedByName().ToList();
+            institutions.Insert(0, new Institution() { Id = 0, Name = "Select institution" });
             ViewBag.Institutions = institutions;
-            
             return View();
         }
 
@@ -48,8 +63,7 @@ namespace InstitutionOfHigherEducation.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    _context.Add(department);
-                    await _context.SaveChangesAsync();
+                    await departmentDAL.SaveDepartment(department);
                     return RedirectToAction(nameof(Index));
                 }
             }
@@ -63,26 +77,17 @@ namespace InstitutionOfHigherEducation.Controllers
 
         public async Task<IActionResult> Edit(long? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var departament = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
-
-            if (departament == null)
-            {
-                return NotFound();
-            }
+            ViewResult departmentView = (ViewResult) await GetDepartmentViewById(id);
+            Department department = (Department) departmentView.Model;
 
             ViewBag.Institutions = new SelectList(
                 _context.Institutions.OrderBy(institution => institution.Name),
                 "Id",
                 "Name",
-                departament.InstitutionId
+                department.InstitutionId
             );
 
-            return View(departament);
+            return departmentView;
         }
 
         [HttpPost]
@@ -98,12 +103,11 @@ namespace InstitutionOfHigherEducation.Controllers
             {
                 try
                 {
-                    _context.Update(department);
-                    await _context.SaveChangesAsync();
+                    await departmentDAL.SaveDepartment(department);
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DepartmentExists(department.Id))
+                    if (!await DepartmentExists(department.Id))
                     {
                         return NotFound();
                     }
@@ -126,54 +130,26 @@ namespace InstitutionOfHigherEducation.Controllers
             return View(department);
         }
 
-        public bool DepartmentExists(long? id)
+        private async Task<bool> DepartmentExists(long? id)
         {
-            return _context.Departments.Any(department => department.Id == id);
+            return await departmentDAL.GetDepartmentById((long) id) != null;
         }
 
         public async Task<IActionResult> Details(long? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var departament = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
-            _context.Institutions.Where(institution => departament.InstitutionId == institution.Id).Load();
-
-            if (departament == null)
-            {
-                return NotFound();
-            }
-
-            return View(departament);
+            return await GetDepartmentViewById(id);
         }
 
         public async Task<IActionResult> Delete(long? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var department = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
-            _context.Institutions.Where(institution => department.InstitutionId == institution.Id).Load();
-
-            if (department == null)
-            {
-                return NotFound();
-            }
-
-            return View(department);
+            return await GetDepartmentViewById(id);
         }
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(long? id)
         {
-            var departament = await _context.Departments.SingleOrDefaultAsync(d => d.Id == id);
-            _context.Departments.Remove(departament);
-            await _context.SaveChangesAsync();
+            var departament = await departmentDAL.RemoveDepartmentById((long) id);
             return RedirectToAction(nameof(Index));
         }
     }

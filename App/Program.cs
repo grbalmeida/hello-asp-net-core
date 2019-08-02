@@ -19,7 +19,7 @@ namespace InstitutionOfHigherEducation
         {
             var host = CreateWebHostBuilder(args).Build();
 
-            using(var scope = host.Services.CreateScope())
+            /*using(var scope = host.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
 
@@ -33,7 +33,7 @@ namespace InstitutionOfHigherEducation
                     var logger = services.GetRequiredService<ILogger<Program>>();
                     logger.LogError(ex, "An error ocurred while populating the database.");
                 }
-            }
+            }*/
 
             host.Run();
         }
